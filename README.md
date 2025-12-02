@@ -1,4 +1,4 @@
-# Password-Maneger-V2
+# Password-Manager-V2
 An updated password manager
 
 
