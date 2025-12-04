@@ -4,6 +4,7 @@ from PIL import Image, ImageTk
 import urllib.request
 from io import BytesIO
 
+from pandas import DataFrame
 import pyotp
 import time
 import json
@@ -100,7 +101,44 @@ def passwords(passwordList, inner_frame, contFrame, canvas, dataFrame, root, use
         for widget in dataFrame.winfo_children():
             widget.destroy()
         favicon_path = get_favicon(parts[1], user)
-        showVar = [False]
+        with open(f'files/{user}/config/settings.json', 'r') as f: data = json.load(f)
+        showVar = [data["settings"]["General Settings"]["passwordsShownByDefault"]]
+
+        def confirmPin(option, code):
+            pinConfirmScreen = Toplevel(root)
+            pinConfirmScreen.title("Confirm Pin")
+            pinConfirmScreen.resizable(False, False)
+            pinConfirmScreen.geometry("300x150")
+            pinConfirmScreen.config(bg=BG_PANEL)
+
+            def confirm(*_):
+                value = pinVar.get()
+                if len(value) > 4:
+                    pinVar.set(value[:4])
+                if len(value) == 4:
+                    if pinE.get() == code:
+                        if option == "show": showPassword()
+                        if option == 'edit': editPassword()
+                        if option == "delete": deletePassword()
+                        pinConfirmScreen.destroy()
+
+            Label(pinConfirmScreen, text="Enter Pin", font=('arial', 32), bg=BG_PANEL, fg=FG_COLOR_P).place(relx=0.5, y=25, anchor='center')
+            pinVar = StringVar()
+            pinVar.trace_add('write', confirm)
+            pinE = Entry(pinConfirmScreen, textvariable=pinVar, font=('arial', 30), bg=BG_INPUT, fg=FG_COLOR_P, justify='center', relief="flat", bd=0)
+            pinE.place(x=10, y=85, height=50, width=280)
+            pinE.focus_force()
+        def controlButtons(option):
+            with open(f'files/{user}/config/settings.json', 'r') as f:
+                data = json.load(f)
+                data = data["settings"]["Authentication"]
+
+            if data["requirePin"]:
+                confirmPin(option, data["pin"])
+            else:
+                if option == "show": showPassword()
+                if option == 'edit': editPassword()
+                if option == "delete": deletePassword()
 
         def showPassword():
             showVar[0] = not showVar[0]
@@ -314,7 +352,7 @@ def passwords(passwordList, inner_frame, contFrame, canvas, dataFrame, root, use
         userL.bind("<Leave>", onHoverLeave)
 
         Label(dataFrame, text="Password", font=('arial',35, 'bold'), bg=BG_CARD, fg=FG_COLOR_P).place(relx=0.02, rely=0.37)
-        passL = Label(dataFrame, text="●"*len(parts[3].strip('\n')), font=('arial', 22), bg=BG_CARD, fg=FG_COLOR_S)
+        passL = Label(dataFrame, font=('arial', 22), bg=BG_CARD, fg=FG_COLOR_S)
         passL.place(relx=0.02, rely=0.45)
         passL.bind("<Button-1>", onClick)
         passL.bind("<Enter>", onHoverEnter)
@@ -359,20 +397,27 @@ def passwords(passwordList, inner_frame, contFrame, canvas, dataFrame, root, use
 
             start_totp_label(authL)
 
-        showB = Button(dataFrame, image=showIconPTK, command=showPassword, relief="flat", bd=0, bg=BG_CARD, activebackground=BG_CARD)
+        showB = Button(dataFrame, command=lambda:controlButtons("show"), relief="flat", bd=0, bg=BG_CARD, activebackground=BG_CARD)
         showB.place(relx=0.9, rely=0.46, width=32, height=32)
         showB.bind("<Enter>", onHoverEnter)
         showB.bind("<Leave>", onHoverLeave)
 
-        editB = Button(dataFrame, image=editIconPTK, command=editPassword, relief="flat", bd=0, bg=BG_CARD, activebackground=BG_CARD)
+        editB = Button(dataFrame, image=editIconPTK, command=lambda:controlButtons("edit"), relief="flat", bd=0, bg=BG_CARD, activebackground=BG_CARD)
         editB.place(relx=0.85, rely=0.02, height=64, width=64)
         editB.bind("<Enter>", onHoverEnter)
         editB.bind("<Leave>", onHoverLeave)
 
-        deleteB = Button(dataFrame, image=deleteIconPTK, command=deletePassword, relief="flat", bd=0, bg=BG_CARD, activebackground=BG_CARD)
+        deleteB = Button(dataFrame, image=deleteIconPTK, command=lambda:controlButtons("delete"), relief="flat", bd=0, bg=BG_CARD, activebackground=BG_CARD)
         deleteB.place(relx=0.85, rely=0.9, height=64, width=64)
         deleteB.bind("<Enter>", onHoverEnter)
         deleteB.bind("<Leave>", onHoverLeave)
+
+        if showVar[0]:
+            passL.config(text=parts[3])
+            showB.config(image=hideIconPTK)
+        else:
+            passL.config(text="●"*len(parts[3].strip('\n')))
+            showB.config(image=showIconPTK)
 
         Label(dataFrame, text="Hint: Click to Copy", font=('arial', 15), bg=BG_CARD, fg="#424242").place(relx=0.35, rely=0.95)
     def move_password(lineStr, direction):
@@ -497,7 +542,44 @@ def cards(cardList, inner_frame, contFrame, canvas, dataFrame, root, user, searc
     def displayCard(parts, lineStr, event=None):
         for widget in dataFrame.winfo_children(): widget.destroy()
         favicon_path = get_favicon(parts[1], user)
-        showVar = [True]
+        with open(f'files/{user}/config/settings.json', 'r') as f: data = json.load(f)
+        showVar = [data["settings"]["General Settings"]["passwordsShownByDefault"]]
+
+        def confirmPin(option, code):
+            pinConfirmScreen = Toplevel(root)
+            pinConfirmScreen.title("Confirm Pin")
+            pinConfirmScreen.resizable(False, False)
+            pinConfirmScreen.geometry("300x150")
+            pinConfirmScreen.config(bg=BG_PANEL)
+
+            def confirm(*_):
+                value = pinVar.get()
+                if len(value) > 4:
+                    pinVar.set(value[:4])
+                if len(value) == 4:
+                    if pinE.get() == code:
+                        if option == "show": showCard()
+                        if option == 'edit': editCard()
+                        if option == "delete": deleteCard()
+                        pinConfirmScreen.destroy()
+
+            Label(pinConfirmScreen, text="Enter Pin", font=('arial', 32), bg=BG_PANEL, fg=FG_COLOR_P).place(relx=0.5, y=25, anchor='center')
+            pinVar = StringVar()
+            pinVar.trace_add('write', confirm)
+            pinE = Entry(pinConfirmScreen, textvariable=pinVar, font=('arial', 30), bg=BG_INPUT, fg=FG_COLOR_P, justify='center', relief="flat", bd=0)
+            pinE.place(x=10, y=85, height=50, width=280)
+            pinE.focus_force()
+        def controlButtons(option):
+            with open(f'files/{user}/config/settings.json', 'r') as f:
+                data = json.load(f)
+                data = data["settings"]["Authentication"]
+
+            if data["requirePin"]:
+                confirmPin(option, data["pin"])
+            else:
+                if option == "show": showCard()
+                if option == 'edit': editCard()
+                if option == "delete": deleteCard()
 
         def showCard():
             def formatCard(number, mode="n"):
@@ -515,7 +597,7 @@ def cards(cardList, inner_frame, contFrame, canvas, dataFrame, root, user, searc
                 return spaced
             showVar[0] = not showVar[0]
 
-            if showVar[0]:
+            if not showVar[0]:
                 cardNumber = formatCard(parts[3])
                 showB.config(image=hideIconPTK)
                 cardNoL.config(text=cardNumber)
@@ -805,24 +887,23 @@ def cards(cardList, inner_frame, contFrame, canvas, dataFrame, root, user, searc
         pinL.bind("<Enter>", onHoverEnter)
         pinL.bind("<Leave>", onHoverLeave)
 
-        showB = Button(dataFrame, image=showIconPTK, command=showCard, relief="flat", bd=0, bg=BG_CARD, activebackground=BG_CARD)
+        showB = Button(dataFrame, image=showIconPTK, command=lambda:controlButtons("show"), relief="flat", bd=0, bg=BG_CARD, activebackground=BG_CARD)
         showB.place(relx=0.9, rely=0.46, width=32, height=32)
         showB.bind("<Enter>", onHoverEnter)
         showB.bind("<Leave>", onHoverLeave)
 
-        editB = Button(dataFrame, image=editIconPTK, command=editCard, relief="flat", bd=0, bg=BG_CARD, activebackground=BG_CARD)
+        editB = Button(dataFrame, image=editIconPTK, command=lambda:controlButtons("edit"), relief="flat", bd=0, bg=BG_CARD, activebackground=BG_CARD)
         editB.place(relx=0.85, rely=0.02, height=64, width=64)
         editB.bind("<Enter>", onHoverEnter)
         editB.bind("<Leave>", onHoverLeave)
 
-        deleteB = Button(dataFrame, image=deleteIconPTK, command=deleteCard, relief="flat", bd=0, bg=BG_CARD, activebackground=BG_CARD)
+        deleteB = Button(dataFrame, image=deleteIconPTK, command=lambda:controlButtons("delete"), relief="flat", bd=0, bg=BG_CARD, activebackground=BG_CARD)
         deleteB.place(relx=0.85, rely=0.9, height=64, width=64)
         deleteB.bind("<Enter>", onHoverEnter)
         deleteB.bind("<Leave>", onHoverLeave)
 
         Label(dataFrame, text="Hint: Click to Copy", font=('arial', 15), bg=BG_CARD, fg=FG_HIGHLIGHT).place(relx=0.35, rely=0.95)
         showCard()
-
     def move_card(lineStr, direction):
         with open(f"files/{user}/cards.txt", "r") as f: full_list = f.readlines()
 
@@ -899,9 +980,7 @@ def cards(cardList, inner_frame, contFrame, canvas, dataFrame, root, user, searc
     canvas.config(scrollregion=(0, 0, canvas.winfo_width(), total_height))
 
 def settings(inner_frame, contFrame, canvas, dataFrame, user):
-    for widget in inner_frame.winfo_children():
-        if widget != contFrame: widget.destroy()
-    for widget in dataFrame.winfo_children(): widget.destroy()
+    _clear_content(inner_frame, contFrame, dataFrame)
     yPos = 10
 
     with open(f'files/{user}/config/settings.json', 'r') as f:
@@ -924,31 +1003,208 @@ def settings(inner_frame, contFrame, canvas, dataFrame, user):
 
     def displaySetting(settingOption, event=None):
         for widget in dataFrame.winfo_children(): widget.destroy()
-        with open(f'files/{user}/config/settings.json', 'r') as f:
-            data = json.load(f)
-            data = data["settings"][settingOption]
 
         if settingOption == "General Settings":
-            Label(dataFrame, text="General Settings", font=('arial', 32), bg=BG_CARD, fg=FG_COLOR_P).place(relx=0.5, rely=0.05, anchor="center")
+            def place_right_of(left_widget, right_widget, rely, padding=20):
+                left_widget.update_idletasks()
+                x = left_widget.winfo_x() + left_widget.winfo_reqwidth() + padding
+                right_widget.place(x=x, rely=rely, anchor='w')
 
-            defaultScreenOptions = ["Logins", "Cards", "Notes"]
-            defaultScreen = StringVar(value=defaultScreenOptions[0])
+            with open(f'files/{user}/config/settings.json', 'r') as f:
+                settings = json.load(f)["settings"][settingOption]
 
-            Label(dataFrame, text="Default Screen:", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P).place(relx=0.02, rely=0.15)
-            tldB =  OptionMenu(dataFrame, defaultScreen, *defaultScreenOptions)
-            tldB.config(font=('arial', 30), fg=FG_COLOR_P, bg=BG_BUTTON, relief="flat", borderwidth=0, activebackground=BG_BUTTON_ALT, activeforeground=FG_COLOR_S)
-            tldB["menu"].config(font=('arial', 20), bg=BG_BUTTON_ALT, fg=FG_COLOR_S)
-            tldB.place(relx=0.58, rely=0.15, height=50, width=180)
+            Label(dataFrame, text="General Settings", font=('arial', 32), bg=BG_CARD, fg=FG_COLOR_P ).place(relx=0.5, rely=0.05, anchor="center")
 
 
+            def saveSetting(event):
+                with open(f'files/{user}/config/settings.json', 'r') as f:
+                    data = json.load(f)
+
+                if event in defaultScreenOptions:
+                    data["settings"][settingOption]["defaultScreen"] = defaultScreenOptions[event]
+
+                if event in themeOptions:
+                    data["settings"][settingOption]["theme"] = themeOptions[event]
+
+                with open(f'files/{user}/config/settings.json', 'w') as f:
+                    json.dump(data, f, indent=4)
+            def onHoverEnter(event):
+                if event.widget == faviconB: faviconB.config(fg=FG_COLOR_S, bg=BG_BUTTON_ALT)
+                if event.widget == passwordB: passwordB.config(fg=FG_COLOR_S, bg=BG_BUTTON_ALT)
+            def onHoverLeave(event):
+                if event.widget == faviconB: faviconB.config(fg=FG_COLOR_P, bg=BG_CARD)
+                if event.widget == passwordB: passwordB.config(fg=FG_COLOR_P, bg=BG_CARD)
+            def onClick(event):
+                widget = event.widget
+
+                with open(f'files/{user}/config/settings.json', 'r') as f:
+                    data = json.load(f)
+
+                if widget == faviconB:
+                    curr = data["settings"][settingOption]["favicons"]
+                    data["settings"][settingOption]["favicons"] = not curr
+                    faviconB.config(text="True" if not curr else "False")
+                if widget == passwordB:
+                    curr = data["settings"][settingOption]["passwordsShownByDefault"]
+                    data["settings"][settingOption]["passwordsShownByDefault"] = not curr
+                    passwordB.config(text="False" if not curr else "True")
+
+                with open(f'files/{user}/config/settings.json', 'w') as f:
+                    json.dump(data, f, indent=4)
+
+            defaultScreenOptions = {
+                "Logins": "pasw",
+                "Cards": "card",
+                "Notes": "note",
+                "Settings": "sett"
+            }
+            valueDefaultScreen = {v: k for k, v in defaultScreenOptions.items()}
+            defaultScreen = StringVar(value=valueDefaultScreen[settings["defaultScreen"]])
+
+            lbl_defaultScreen = Label(dataFrame, text="Default Screen:", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
+            lbl_defaultScreen.place(relx=0.02, rely=0.15, anchor='w')
+
+            defaultScreenOM = OptionMenu(dataFrame, defaultScreen, *defaultScreenOptions.keys(), command=saveSetting)
+            defaultScreenOM.config(font=('arial', 30), fg=FG_COLOR_P, bg=BG_BUTTON, relief="flat", borderwidth=0, activebackground=BG_BUTTON_ALT, activeforeground=FG_COLOR_S)
+            defaultScreenOM["menu"].config(font=('arial', 20), bg=BG_BUTTON_ALT, fg=FG_COLOR_S)
+            place_right_of(lbl_defaultScreen, defaultScreenOM, 0.15)
+
+
+
+
+            themeOptions = {
+                "Blue": "blue", "Dark": "dark",
+                "Purple": "purple", "Red": "red",
+                "Green": "green", "Light": "light"
+            }
+            valueTheme = {v: k for k, v in themeOptions.items()}
+            theme = StringVar(value=valueTheme[settings["theme"]])
+
+            lbl_theme = Label(
+                dataFrame, text="Color Theme:",
+                font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P
+            )
+            lbl_theme.place(relx=0.02, rely=0.25, anchor='w')
+
+            themeOM = OptionMenu(dataFrame, theme, *themeOptions.keys(), command=saveSetting)
+            themeOM.config(font=('arial', 30), fg=FG_COLOR_P, bg=BG_BUTTON, relief="flat", borderwidth=0, activebackground=BG_BUTTON_ALT, activeforeground=FG_COLOR_S)
+            themeOM["menu"].config(font=('arial', 20), bg=BG_BUTTON_ALT, fg=FG_COLOR_S)
+            place_right_of(lbl_theme, themeOM, 0.25)
+
+            Label(dataFrame, text="For themes to change you need to re-open the app", font=('arial', 12), bg=BG_CARD, fg=FG_COLOR_S).place(relx=0.02, rely=0.35, anchor='w')
+
+            lbl_favicon = Label(dataFrame, text="Load Favicons:", font=("arial", 28), bg=BG_CARD, fg=FG_COLOR_P)
+            lbl_favicon.place(relx=0.02, rely=0.42, anchor='w')
+
+            faviconB = Label(dataFrame, text="True" if settings["favicons"] else "False", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
+            place_right_of(lbl_favicon, faviconB, 0.42)
+
+            faviconB.bind("<Enter>", onHoverEnter)
+            faviconB.bind("<Leave>", onHoverLeave)
+            faviconB.bind("<Button-1>", onClick)
+
+
+            lbl_passwords = Label(dataFrame, text="Hide Passwords:", font=("arial", 28), bg=BG_CARD, fg=FG_COLOR_P)
+            lbl_passwords.place(relx=0.02, rely=0.52, anchor='w')
+
+            passwordB = Label(dataFrame, text="False" if settings["passwordsShownByDefault"] else "True", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
+            place_right_of(lbl_passwords, passwordB, 0.52)
+
+            passwordB.bind("<Enter>", onHoverEnter)
+            passwordB.bind("<Leave>", onHoverLeave)
+            passwordB.bind("<Button-1>", onClick)
         if settingOption == "Authentication":
+            with open(f'files/{user}/config/settings.json', 'r') as f:
+                settings = json.load(f)
+                settings = settings["settings"][settingOption]
+
+            def place_right_of(left_widget, right_widget, rely, padding=20):
+                left_widget.update_idletasks()
+                x = left_widget.winfo_x() + left_widget.winfo_reqwidth() + padding
+                right_widget.place(x=x, rely=rely, anchor='w')
+            def onHoverEnter(event):
+                widget = event.widget
+                if widget == requirePinB: requirePinB.config(fg=FG_COLOR_S, bg=BG_BUTTON_ALT)
+                if widget == otpB: otpB.config(fg=FG_COLOR_S, bg=BG_BUTTON_ALT)
+                if widget == otpL: otpL.config(fg=FG_COLOR_S)
+            def onHoverLeave(event):
+                widget = event.widget
+                if widget == requirePinB: requirePinB.config(fg=FG_COLOR_P, bg=BG_CARD)
+                if widget == otpB: otpB.config(fg=FG_COLOR_P, bg=BG_CARD)
+                if widget == otpL: otpL.config(fg=FG_COLOR_P)
+            def onClick(event):
+                widget = event.widget
+                with open(f'files/{user}/config/settings.json', 'r') as f:
+                    data = json.load(f)
+
+                if widget == requirePinB:
+                    current = data["settings"][settingOption]["requirePin"]
+                    new_value = not current
+                    data["settings"][settingOption]["requirePin"] = new_value
+                    requirePinB.config(text="True" if new_value else "False")
+                if widget == otpB:
+                    current = data["settings"][settingOption]["auth"]
+                    new_value = not current
+                    data["settings"][settingOption]["auth"] = new_value
+                    otpB.config(text="True" if new_value else "False")
+                if widget == otpL: pyperclip.copy(settings["authKey"])
+
+                with open(f'files/{user}/config/settings.json', 'w') as f: json.dump(data, f, indent=4)
+
+            def focusIn(event): pinE.delete(0, END)
+            def focusOut(event): pinE.delete(0, END); pinE.insert(0, settings["pin"])
+            def keyStroke(*_):
+                value = pinVar.get()
+                if len(value) > 4:
+                    pinVar.set(value[:4])
+                if len(value) == 4:
+                    with open(f'files/{user}/config/settings.json', 'r') as f: data = json.load(f)
+                    with open(f'files/{user}/config/settings.json', 'w') as f:
+                        data["settings"][settingOption]["pin"] = pinVar.get()
+                        json.dump(data, f, indent=4)
+
             Label(dataFrame, text="Authentication", font=('arial', 32), bg=BG_CARD, fg=FG_COLOR_P).place(relx=0.5, rely=0.05, anchor="center")
-            print(data)
+
+            
+            lbl_requirePin = Label(dataFrame, text="Require Pin:", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
+            lbl_requirePin.place(relx=0.02, rely=0.15, anchor='w')
+            requirePinB = Label(dataFrame, text="True" if settings["requirePin"] else "False", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
+            place_right_of(lbl_requirePin, requirePinB, 0.15)
+            requirePinB.bind("<Enter>", onHoverEnter)
+            requirePinB.bind("<Leave>", onHoverLeave)
+            requirePinB.bind("<Button-1>", onClick)
+
+            lbl_pin = Label(dataFrame, text="Pin:", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
+            lbl_pin.place(relx=0.02, rely=0.25, anchor='w')
+            pinVar = StringVar()
+            pinVar.trace_add('write', keyStroke)
+            pinE = Entry(dataFrame, textvariable=pinVar, font=('arial', 25), justify='center', bg=BG_INPUT, fg=FG_COLOR_P, relief="flat", bd=0)
+            place_right_of(lbl_pin, pinE, 0.25)
+            pinE.insert(0, settings["pin"])
+            pinE.bind("<FocusIn>", focusIn)
+            pinE.bind("<FocusOut>", focusOut)
+            pinE.bind("<Key>", keyStroke)
+
+            lbl_useOTP = Label(dataFrame, text="Use OTP:", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
+            lbl_useOTP.place(relx=0.02, rely=0.36, anchor='w')
+            otpB = Label(dataFrame, text="True" if settings["auth"] else "False", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
+            place_right_of(lbl_useOTP, otpB, 0.36)
+            otpB.bind("<Enter>", onHoverEnter)
+            otpB.bind("<Leave>", onHoverLeave)
+            otpB.bind("<Button-1>", onClick)
+
+            lbl_key = Label(dataFrame, text="OTP Key:", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
+            lbl_key.place(relx=0.02, rely=0.46, anchor='w')
+            otpL = Label(dataFrame, text=settings["authKey"], font=('arial', 15), bg=BG_CARD, fg=FG_COLOR_P, wraplength=1000, justify='left')
+            otpL.bind("<Enter>", onHoverEnter)
+            otpL.bind("<Leave>", onHoverLeave)
+            otpL.bind("<Button-1>", onClick)
+            place_right_of(lbl_key, otpL, 0.46) 
+            
         if settingOption == "Change Password":
             Label(dataFrame, text="Change Password", font=('arial', 32), bg=BG_CARD, fg=FG_COLOR_P).place(relx=0.5, rely=0.05, anchor="center")
         if settingOption == "Delete Account":
             Label(dataFrame, text="Delete Account", font=('arial', 32), bg=BG_CARD, fg=FG_COLOR_P).place(relx=0.5, rely=0.05, anchor="center")
-
 
     settingList = ["General Settings", "Authentication", "Change Password", "Delete Account"]
 

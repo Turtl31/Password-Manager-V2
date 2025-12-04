@@ -115,14 +115,16 @@ def loginScreen():
                 data = {
                     "settings": {
                         "General Settings": {
+                            "passwordsShownByDefault": False,
+                            "favicons": True,
                             "defaultScreen": "pasw",
-                            "favicons": True
+                            "theme": "blue"
                         },
                         "Authentication": {
                             "requirePin": False,
-                            "pin": "",
+                            "pin": "1111",
                             "auth": False,
-                            "authKey": ""
+                            "authKey": f"{pyotp.random_base32()}"
                         }
                     }
                 }
@@ -154,6 +156,27 @@ def loginScreen():
         Button(rect, text="Register", font=("arial", 32), command=saveAcc).place(x=150, y=260, width=200, height=60)
         Button(rect, text="Return", font=("arial", 32), command=loginScreen).place(x=150, y=420, width=200, height=60)
     def login():
+        def otp():
+            def on_return(event): authenticate()
+            def authenticate():
+                with open(f"files/{user}/config/settings.json", 'r') as f: data = json.load(f)
+                totp = pyotp.TOTP(data["settings"]["Authentication"]["authKey"])
+                if totp.verify(code.get()): mainScreen(user.strip('\n')); otpS.destroy()
+                else: pass
+                
+            otpS = Toplevel(root)
+            otpS.title("2 Factor Authentication")
+            otpS.geometry("500x200")
+            otpS.resizable(False, False)
+            otpS.config(bg=BG_COLOR_LIGHT)
+            
+            Label(otpS, text="2 Factor Authentication", font=('arial', 25), bg=BG_COLOR_LIGHT).place(x=80,y=10)
+            Label(otpS, text="Code", font=('arial', 20), bg=BG_COLOR_LIGHT).place(x=15, y=70)
+            code = Entry(otpS, font=('arial', 20), justify='center')
+            code.place(x=100, y=73, height=35, width=200)
+            code.bind("<Return>", on_return)
+            Button(otpS, text="Authenticate", font=('arial', 20), command=authenticate).place(x=310, y=73, height=35, width=180)
+
         user = u.get()
         pasw = p.get()
 
@@ -163,7 +186,13 @@ def loginScreen():
             for i in data:
                 i = i.split(",")
                 if user == i[0] and pasw == i[1].strip('\n'):
-                    mainScreen(user)
+                    with open(f'files/{user}/config/settings.json', 'r') as f:
+                        data = json.load(f)
+                    if not data["settings"]["Authentication"]["auth"]:
+                        mainScreen(user)
+                    else:
+                        print("Auth Needed")
+                        otp()
                     break
                 elif user == i[0] and pasw != i[1]: errL.config(text="[-] Incorrect Password", fg="red"); break
                 elif user != i[0]: errL.config(text="[-] Account Does Not Exist", fg="red")
@@ -242,12 +271,16 @@ def mainScreen(user):
         widget = event.widget
 
         if widget == loginsB:
+            addB.config(state="normal")
+            searchE.config(state="normal")
             loginsB.config(fg=ACCENT_BLUE, image=loginsIconBPTK)
             cardsB.config(fg=FG_COLOR_P, image=cardsIconWPTK)
             menuOpen = "pasw"
             passwordList, cardList = load(user)
             apps.passwords(passwordList, inner_frame, contFrame, canvas, dataFrame, root, user, searchE.get())
         if widget == cardsB:
+            addB.config(state="normal")
+            searchE.config(state="normal")
             cardsB.config(fg=ACCENT_BLUE, image=cardsIconBPTK)
             loginsB.config(fg=FG_COLOR_P, image=loginsIconWPTK)
             menuOpen = "card"
@@ -255,6 +288,8 @@ def mainScreen(user):
             apps.cards(cardList, inner_frame, contFrame, canvas, dataFrame, root, user, searchE.get())
         if widget == logoutB: loginScreen()
         if widget == settingsB:
+            addB.config(state="disabled")
+            searchE.config(state="disabled")
             menuOpen = "sett"
             cardsB.config(fg=FG_COLOR_P, image=cardsIconWPTK)
             loginsB.config(fg=FG_COLOR_P, image=loginsIconWPTK)
@@ -749,6 +784,6 @@ def mainScreen(user):
         loginsB.config(fg=FG_COLOR_P, image=loginsIconWPTK)
         apps.settings(inner_frame, contFrame, canvas, dataFrame, user)
 
-#loginScreen()
-mainScreen("a")
+loginScreen()
+
 root.mainloop()
