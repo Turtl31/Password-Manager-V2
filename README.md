@@ -56,6 +56,6 @@ python main.py
 - `theme.py` — theme definitions.
 - `cryption.py` — Argon2id key derivation and AES‑GCM encryption/decryption helpers.
 
-
+<br>
 Feel Free to reach out to me if you have any questions
 Discord: `.turtl3.`
