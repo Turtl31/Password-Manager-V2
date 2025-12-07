@@ -1,27 +1,22 @@
-# theme.py
-
 currentTheme = {}
 
 THEMES = {
     "blue": {
-        "BG_MAIN": "#161A20",
-        "BG_PANEL": "#1C2129",
-        "BG_LIST": "#181C24",
-        "BG_CARD": "#222832",
-        "BG_INPUT": "#2A303A",
-        "BG_BUTTON": "#2D3440",
-        "BG_BUTTON_ALT": "#3A4250",
+        "BG_MAIN": "#161A20",           # Main window background
+        "BG_PANEL": "#1C2129",          # Side panels / detail panel
+        "BG_LIST": "#181C24",           # List area behind cards
+        "BG_CARD": "#222832",           # Individual list items / cards
+        "BG_INPUT": "#2A303A",          # Search bar / entry fields
+        "BG_BUTTON": "#2D3440",         # Neutral buttons
+        "BG_BUTTON_ALT": "#3A4250",     # Secondary buttons (settings, logout, etc.)
 
-        "FG_PRIMARY": "#E8ECF2",
-        "FG_SECONDARY": "#B9C0CC",
-        "FG_MUTED": "#8691A2",
+        "FG_PRIMARY": "#E8ECF2",        # Main text
+        "FG_SECONDARY": "#B9C0CC",      # Sub text
+        "FG_MUTED": "#8691A2",          # Hints / helper text
 
-        "ACCENT_BLUE": "#4A8CFF",
-        "ACCENT_BLUE_SOFT": "#3D6FD1",
-        "ACCENT_BLUE_GLOW": "#66A3FF",
-
-        "BORDER_DIM": "#2C323C",
-        "BORDER_BRIGHT": "#3E4653",
+        "ACCENT_BLUE": "#4A8CFF",       # Main accent (links, focus, primary actions)
+        "ACCENT_BLUE_SOFT": "#3D6FD1",  # Softer accent (hover, subtle outlines)
+        "ACCENT_BLUE_GLOW": "#66A3FF",  # Strong highlight / glow
     },
 
     "dark": {
@@ -40,9 +35,6 @@ THEMES = {
         "ACCENT_BLUE": "#4A8CFF",
         "ACCENT_BLUE_SOFT": "#3D6FD1",
         "ACCENT_BLUE_GLOW": "#66A3FF",
-
-        "BORDER_DIM": "#2E2E2E",
-        "BORDER_BRIGHT": "#404040",
     },
 
     "light": {
@@ -61,9 +53,6 @@ THEMES = {
         "ACCENT_BLUE": "#4A8CFF",
         "ACCENT_BLUE_SOFT": "#3D6FD1",
         "ACCENT_BLUE_GLOW": "#66A3FF",
-
-        "BORDER_DIM": "#DDDDDD",
-        "BORDER_BRIGHT": "#BFBFBF",
     }, 
     "red": {
         "BG_MAIN": "#201618",
@@ -81,9 +70,6 @@ THEMES = {
         "ACCENT_BLUE": "#4A8CFF",
         "ACCENT_BLUE_SOFT": "#3D6FD1",
         "ACCENT_BLUE_GLOW": "#66A3FF",
-
-        "BORDER_DIM": "#3A2528",
-        "BORDER_BRIGHT": "#503036",
     },
 
     "purple": {
@@ -102,9 +88,6 @@ THEMES = {
         "ACCENT_BLUE": "#4A8CFF",
         "ACCENT_BLUE_SOFT": "#3D6FD1",
         "ACCENT_BLUE_GLOW": "#66A3FF",
-
-        "BORDER_DIM": "#352A41",
-        "BORDER_BRIGHT": "#4A3A5E",
     },
 
     "green": {
@@ -123,9 +106,6 @@ THEMES = {
         "ACCENT_BLUE": "#4A8CFF",
         "ACCENT_BLUE_SOFT": "#3D6FD1",
         "ACCENT_BLUE_GLOW": "#66A3FF",
-
-        "BORDER_DIM": "#263A2D",
-        "BORDER_BRIGHT": "#375945",
     },
 }
 
