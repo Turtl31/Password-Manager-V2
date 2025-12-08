@@ -168,7 +168,7 @@ def loginScreen():
             def authenticate():
                 with open(f"files/{user}/config/settings.json", 'r') as f: data = json.load(f)
                 totp = pyotp.TOTP(data["settings"]["Authentication"]["authKey"])
-                if totp.verify(code.get()): mainScreen(user.strip('\n')); otpS.destroy()
+                if totp.verify(code.get()): mainScreen(user.strip('\n'), vaultKey); otpS.destroy()
                 else: pass
             
 
@@ -305,7 +305,7 @@ def mainScreen(user, vaultKey):
             menuOpen = "sett"
             cardsB.config(fg=FG_COLOR_P, image=cardsIconWPTK)
             loginsB.config(fg=FG_COLOR_P, image=loginsIconWPTK)
-            apps.settings(inner_frame, contFrame, canvas, dataFrame, user)
+            apps.settings(inner_frame, contFrame, canvas, dataFrame, user, vaultKey)
     def onHoverEnter(event):
         global menuOpen
         widget = event.widget

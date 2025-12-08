@@ -7,6 +7,7 @@ from pandas import DataFrame
 import cryption
 import qrcode
 import shutil
+import base64
 import pyotp
 import time
 import json
@@ -523,7 +524,6 @@ def passwords(passwordList, inner_frame, contFrame, canvas, dataFrame, root, use
     inner_frame.config(height=total_height, width=canvas.winfo_width())
     canvas.update_idletasks()
     canvas.config(scrollregion=(0, 0, canvas.winfo_width(), total_height))
-
 def cards(cardList, inner_frame, contFrame, canvas, dataFrame, root, user, searchParam, vaultKey):
     _clear_content(inner_frame, contFrame, dataFrame)
     if searchParam == "Search...": searchParam = ""      
@@ -1037,7 +1037,7 @@ def cards(cardList, inner_frame, contFrame, canvas, dataFrame, root, user, searc
     canvas.update_idletasks()
     canvas.config(scrollregion=(0, 0, canvas.winfo_width(), total_height))
 
-def settings(inner_frame, contFrame, canvas, dataFrame, user):
+def settings(inner_frame, contFrame, canvas, dataFrame, user, vaultKey):
     _clear_content(inner_frame, contFrame, dataFrame)
     yPos = 10
 
@@ -1101,11 +1101,11 @@ def settings(inner_frame, contFrame, canvas, dataFrame, user):
                 if widget == faviconB:
                     curr = data["settings"][settingOption]["favicons"]
                     data["settings"][settingOption]["favicons"] = not curr
-                    faviconB.config(text="True" if not curr else "False")
+                    faviconB.config(text="On" if not curr else "Off")
                 if widget == passwordB:
                     curr = data["settings"][settingOption]["passwordsShownByDefault"]
                     data["settings"][settingOption]["passwordsShownByDefault"] = not curr
-                    passwordB.config(text="False" if not curr else "True")
+                    passwordB.config(text="Off" if not curr else "On")
 
                 with open(f'files/{user}/config/settings.json', 'w') as f:
                     json.dump(data, f, indent=4)
@@ -1126,9 +1126,6 @@ def settings(inner_frame, contFrame, canvas, dataFrame, user):
             defaultScreenOM.config(font=('arial', 30), fg=FG_COLOR_P, bg=BG_BUTTON, relief="flat", borderwidth=0, activebackground=BG_BUTTON_ALT, activeforeground=FG_COLOR_S)
             defaultScreenOM["menu"].config(font=('arial', 20), bg=BG_BUTTON_ALT, fg=FG_COLOR_S)
             place_right_of(lbl_defaultScreen, defaultScreenOM, 0.15)
-
-
-
 
             themeOptions = {
                 "Blue": "blue", "Dark": "dark",
@@ -1154,7 +1151,7 @@ def settings(inner_frame, contFrame, canvas, dataFrame, user):
             lbl_favicon = Label(dataFrame, text="Load Favicons:", font=("arial", 28), bg=BG_CARD, fg=FG_COLOR_P)
             lbl_favicon.place(relx=0.02, rely=0.42, anchor='w')
 
-            faviconB = Label(dataFrame, text="True" if settings["favicons"] else "False", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
+            faviconB = Label(dataFrame, text="On" if settings["favicons"] else "Off", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
             place_right_of(lbl_favicon, faviconB, 0.42)
 
             faviconB.bind("<Enter>", onHoverEnter)
@@ -1165,7 +1162,7 @@ def settings(inner_frame, contFrame, canvas, dataFrame, user):
             lbl_passwords = Label(dataFrame, text="Hide Passwords:", font=("arial", 28), bg=BG_CARD, fg=FG_COLOR_P)
             lbl_passwords.place(relx=0.02, rely=0.52, anchor='w')
 
-            passwordB = Label(dataFrame, text="False" if settings["passwordsShownByDefault"] else "True", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
+            passwordB = Label(dataFrame, text="Off" if settings["passwordsShownByDefault"] else "On", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
             place_right_of(lbl_passwords, passwordB, 0.52)
 
             passwordB.bind("<Enter>", onHoverEnter)
@@ -1199,12 +1196,12 @@ def settings(inner_frame, contFrame, canvas, dataFrame, user):
                     current = data["settings"][settingOption]["requirePin"]
                     new_value = not current
                     data["settings"][settingOption]["requirePin"] = new_value
-                    requirePinB.config(text="True" if new_value else "False")
+                    requirePinB.config(text="On" if new_value else "Off")
                 if widget == otpB:
                     current = data["settings"][settingOption]["auth"]
                     new_value = not current
                     data["settings"][settingOption]["auth"] = new_value
-                    otpB.config(text="True" if new_value else "False")
+                    otpB.config(text="On" if new_value else "Off")
                 if widget == otpL: pyperclip.copy(settings["authKey"])
 
                 with open(f'files/{user}/config/settings.json', 'w') as f: json.dump(data, f, indent=4)
@@ -1225,7 +1222,7 @@ def settings(inner_frame, contFrame, canvas, dataFrame, user):
 
             lbl_requirePin = Label(dataFrame, text="Require Pin:", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
             lbl_requirePin.place(relx=0.02, rely=0.15, anchor='w')
-            requirePinB = Label(dataFrame, text="True" if settings["requirePin"] else "False", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
+            requirePinB = Label(dataFrame, text="On" if settings["requirePin"] else "Off", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
             place_right_of(lbl_requirePin, requirePinB, 0.15)
             requirePinB.bind("<Enter>", onHoverEnter)
             requirePinB.bind("<Leave>", onHoverLeave)
@@ -1244,7 +1241,7 @@ def settings(inner_frame, contFrame, canvas, dataFrame, user):
 
             lbl_useOTP = Label(dataFrame, text="Use OTP:", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
             lbl_useOTP.place(relx=0.02, rely=0.36, anchor='w')
-            otpB = Label(dataFrame, text="True" if settings["auth"] else "False", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
+            otpB = Label(dataFrame, text="On" if settings["auth"] else "Off", font=('arial', 28), bg=BG_CARD, fg=FG_COLOR_P)
             place_right_of(lbl_useOTP, otpB, 0.36)
             otpB.bind("<Enter>", onHoverEnter)
             otpB.bind("<Leave>", onHoverLeave)
@@ -1293,26 +1290,113 @@ def settings(inner_frame, contFrame, canvas, dataFrame, user):
                     if widget.get() == "":
                         newPasw.insert(0, "New Password")
                         newPasw.config(fg=FG_COLOR_S)
-
             def changePasw():
-                mainPassword = ""
+                nonlocal vaultKey  # use current session key and allow updating it
 
-                with open("files/logins.txt", 'r') as f:
-                    temp = f.readlines()
-                    for i in temp:
-                        i = i.split(',')
-                        if i[0] == user: mainPassword = i[1].strip('\n')
-                
-                if oldPasw.get() == mainPassword:
-                    oldAcc = f"{user},{oldPasw.get()}"
-                    newAcc = f"{user},{newPasw.get()}\n"
-                    with open(f'files/logins.txt', 'r') as f:
-                        lines = f.readlines()
-                    with open(f'files/logins.txt', 'w') as f:
-                        for line in lines:
-                            if oldAcc == line.strip("\n"): f.write(newAcc)	
-                            else: f.write(line)
-                    Label(dataFrame, text="Password Changed", font=('arial', 20), fg="green", bg=BG_CARD).place(relx=0.5, rely=0.55, anchor="center")
+                old_pw = oldPasw.get()
+                new_pw = newPasw.get()
+
+                if not old_pw or not new_pw:
+                    Label(dataFrame, text="Please fill in both old and new password", font=('arial', 20), fg="red", bg=BG_CARD).place(relx=0.5, rely=0.55, anchor="center")
+                    return
+
+                login_path = "files/logins.txt"
+
+                # ---- LOAD LOGIN FILE ----
+                with open(login_path, 'r') as f:
+                    login_lines = f.readlines()
+
+                user_idx = None
+                stored_salt_b64 = None
+                stored_hash_b64 = None
+
+                # ---- FIND THIS USER ----
+                for idx, line in enumerate(login_lines):
+                    parts = line.strip().split(',')
+                    if len(parts) >= 3:
+                        salt_b64, hash_b64, username = parts[0], parts[1], parts[2]
+                        if username == user:
+                            user_idx = idx
+                            stored_salt_b64 = salt_b64
+                            stored_hash_b64 = hash_b64
+                            break
+
+                if user_idx is None:
+                    Label(dataFrame, text="User not found", font=('arial', 20),
+                        fg="red", bg=BG_CARD).place(relx=0.5, rely=0.55, anchor="center")
+                    return
+
+                # ---- VERIFY OLD PASSWORD ----
+                try:
+                    salt = base64.b64decode(stored_salt_b64)
+                    expected_hash = base64.b64decode(stored_hash_b64)
+                    derived = cryption.deriveMasterKey(old_pw, salt)
+                except Exception:
+                    Label(dataFrame, text="Login record corrupted",
+                        font=('arial', 20), fg="red", bg=BG_CARD).place(relx=0.5, rely=0.55, anchor="center")
+                    return
+
+                if derived != expected_hash:
+                    Label(dataFrame, text="Wrong old password",
+                        font=('arial', 20), fg="red", bg=BG_CARD).place(relx=0.5, rely=0.55, anchor="center")
+                    return
+
+                # ---- DECRYPT VAULT USING OLD KEY ----
+                passwords_plain = []
+                try:
+                    with open(f"files/{user}/passwords.txt", 'r') as f:
+                        for enc_line in f:
+                            enc_line = enc_line.strip()
+                            if not enc_line:
+                                continue
+                            passwords_plain.append(cryption.decrypt_line(vaultKey, enc_line))
+                except FileNotFoundError:
+                    passwords_plain = []
+
+                cards_plain = []
+                try:
+                    with open(f"files/{user}/cards.txt", 'r') as f:
+                        for enc_line in f:
+                            enc_line = enc_line.strip()
+                            if not enc_line:
+                                continue
+                            cards_plain.append(cryption.decrypt_line(vaultKey, enc_line))
+                except FileNotFoundError:
+                    cards_plain = []
+
+                # ---- CREATE NEW MASTER KEY ----
+                new_salt = os.urandom(16)
+                new_key = cryption.deriveMasterKey(new_pw, new_salt)
+
+                new_salt_b64 = base64.b64encode(new_salt).decode()
+                new_hash_b64 = base64.b64encode(new_key).decode()
+
+                # ---- STORE NEW LOGIN RECORD IN FORMAT salt,hash,user ----
+                new_login_line = f"{new_salt_b64},{new_hash_b64},{user}\n"
+                login_lines[user_idx] = new_login_line
+
+                with open(login_path, 'w') as f:
+                    f.writelines(login_lines)
+
+                # ---- RE-ENCRYPT PASSWORDS ----
+                if passwords_plain:
+                    with open(f"files/{user}/passwords.txt", 'w') as f:
+                        for rec in passwords_plain:
+                            enc = cryption.encrypt_line(new_key, rec)
+                            f.write(enc + "\n")
+
+                # ---- RE-ENCRYPT CARDS ----
+                if cards_plain:
+                    with open(f"files/{user}/cards.txt", 'w') as f:
+                        for rec in cards_plain:
+                            enc = cryption.encrypt_line(new_key, rec)
+                            f.write(enc + "\n")
+
+                # ---- UPDATE IN-MEMORY vaultKey ----
+                vaultKey = new_key
+
+                Label(dataFrame, text="Master password changed and vault re-encrypted",
+                    font=('arial', 20), fg="green", bg=BG_CARD).place(relx=0.5, rely=0.55, anchor="center")
 
             oldPasw = Entry(dataFrame, font=('arial', 32), bg=BG_INPUT, fg=FG_COLOR_S, relief='flat', bd=0, justify='center')
             oldPasw.place(relx=0.5, rely=0.17, relwidth=0.8, relheight=0.08, anchor="center")
@@ -1328,7 +1412,6 @@ def settings(inner_frame, contFrame, canvas, dataFrame, user):
 
             confirmB = Button(dataFrame, text="Confirm Change", font=('arial', 28), command=changePasw, bg=BG_BUTTON, fg=FG_COLOR_P, relief='flat', bd=0, activebackground=BG_BUTTON_ALT, activeforeground=FG_COLOR_S)
             confirmB.place(relx=0.5, rely=0.4, relwidth=0.8, relheight=0.08, anchor="center")
-
         if settingOption == "Delete Account":
             Label(dataFrame, text="Delete Account", font=('arial', 32), bg=BG_CARD, fg=FG_COLOR_P).place(relx=0.5, rely=0.05, anchor="center")
 
@@ -1358,25 +1441,42 @@ def settings(inner_frame, contFrame, canvas, dataFrame, user):
             def delete():
                 password1 = pasw1.get()
                 password2 = pasw2.get()
-                mainPassword = ""
+
+                if not password1 or not password2 or password1 in ("Password",) or password2 in ("Confirm Password",):
+                    Label(dataFrame, text="Please enter and confirm your password", font=('arial', 20), fg="red", bg=BG_CARD).place(relx=0.5, rely=0.55, anchor="center")
+                    return
+                if password1 != password2:
+                    Label(dataFrame, text="Passwords do not match", font=('arial', 20), fg="red", bg=BG_CARD).place(relx=0.5, rely=0.55, anchor="center")
+                    return
 
                 with open("files/logins.txt", 'r') as f:
-                    temp = f.readlines()
-                    for i in temp:
-                        i = i.split(',')
-                        if i[0] == user: mainPassword = i[1].strip('\n')
-                
-                if password1 == mainPassword and password2 == mainPassword and password1 == password2:
-                    delAcc = f"{user},{password1}"
-                    with open(f'files/logins.txt', 'r') as f:
-                        lines = f.readlines()
-                    with open(f'files/logins.txt', 'w') as f:
-                        for line in lines:
-                            if delAcc != line.strip("\n"):	
-                                f.write(line)
-                    shutil.rmtree(f"files/{user}")
-                else:
-                    pass
+                    login_lines = f.readlines()
+
+                user_idx = None
+                salt_b64 = hash_b64 = None
+                for idx, line in enumerate(login_lines):
+                    parts = line.strip().split(',')
+                    if len(parts) >= 3 and parts[2] == user:
+                        user_idx = idx
+                        salt_b64, hash_b64 = parts[0], parts[1]
+                        break
+
+                if user_idx is None:
+                    Label(dataFrame, text="User not found", font=('arial', 20), fg="red", bg=BG_CARD).place(relx=0.5, rely=0.55, anchor="center")
+                    return
+
+                login_ok, _ = cryption.verifyMasterPassword(password1, salt_b64, hash_b64)
+                if not login_ok:
+                    Label(dataFrame, text="Incorrect password", font=('arial', 20), fg="red", bg=BG_CARD).place(relx=0.5, rely=0.55, anchor="center")
+                    return
+
+                del login_lines[user_idx]
+                with open("files/logins.txt", 'w') as f:
+                    f.writelines(login_lines)
+
+                shutil.rmtree(f"files/{user}", ignore_errors=True)
+
+                Label(dataFrame, text="Account deleted", font=('arial', 20), fg="green", bg=BG_CARD).place(relx=0.5, rely=0.55, anchor="center")
 
             pasw1 = Entry(dataFrame, font=('arial', 32), bg=BG_INPUT, fg=FG_COLOR_S, relief='flat', bd=0, justify='center')
             pasw1.place(relx=0.5, rely=0.17, relwidth=0.8, relheight=0.08, anchor="center")
@@ -1411,6 +1511,7 @@ def settings(inner_frame, contFrame, canvas, dataFrame, user):
     inner_frame.config(height=total_height, width=canvas.winfo_width())
     canvas.update_idletasks()
     canvas.config(scrollregion=(0, 0, canvas.winfo_width(), total_height))
+
 
 def notes(inner_frame, contFrame, canvas, dataFrame, user):
     for widget in inner_frame.winfo_children():
