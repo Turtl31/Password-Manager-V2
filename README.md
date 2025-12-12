@@ -23,7 +23,7 @@ A desktop password, card, and secure-note manager built with Tkinter. Each user 
 
 Install:
 ```bash
-python -m pip install Pillow pyotp pyperclip pandas cryptography argon2-cffi
+python -m pip install pillow qrcode pyotp pyperclip pandas cryptography argon2-cffi
 ```
 
 ## Run
