@@ -55,9 +55,10 @@ python main.py
 
 ## Project Layout
 - `main.py` — UI shell (login/register, navigation).
-- `apps.py` — screens for passwords, cards, notes, and settings.
-- `theme.py` — theme definitions.
+- `apps.py` — Screens for passwords, cards, notes, and settings.
+- `theme.py` — Theme definitions.
 - `cryption.py` — Argon2id key derivation and AES-GCM encryption/decryption helpers.
+- `icons.py` — Loads icons.
 
 ## Screen Shots
 ### Main Screens
